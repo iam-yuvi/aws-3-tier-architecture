@@ -7,7 +7,9 @@ The architecture follows the 3-tier model:
 
 - **Web Tier (Presentation Layer)** – Serves the static frontend via Nginx and integrates with the application layer.  
 - **Application Tier (Logic Layer)** – Node.js application handling API logic and database interactions.  
-- **Database Tier (Data Layer)** – Amazon Aurora MySQL cluster for persistent storage.  
+- **Database Tier (Data Layer)** – Amazon Aurora MySQL cluster for persistent storage.
+  ![aws-3-tier-architecture](images/Architecture.png)
+  
 
 The setup ensures **high availability, scalability, security, and HTTPS access** through AWS CloudFront and ACM.
 
@@ -42,6 +44,8 @@ Create a Standard Topic in Amazon SNS.
 Add a subscription (e.g., Email).
 
 Confirm the subscription via email.
+![aws-3-tier-architecture](images/sns.png)
+
 
 0.3 S3 Bucket Creation
 
@@ -54,6 +58,8 @@ web-tier directory
 app-tier directory
 
 nginx.conf file
+![aws-3-tier-architecture](images/S3-Bucket.png)
+
 
 0.4 IAM Role Creation
 
@@ -63,6 +69,9 @@ AmazonS3ReadOnlyAccess
 
 AmazonSSMManagedInstanceCore
 ```
+![aws-3-tier-architecture](images/IAM-Role.png)
+
+
 🌐 Part 1: Networking and Security
 1.1 VPC and Subnets
 
@@ -75,6 +84,11 @@ Create:
 2 Private App Subnets
 
 2 Private DB Subnets
+![aws-3-tier-architecture](images/VPC-1.png)
+
+
+![aws-3-tier-architecture](images/VPC-2.png)
+
 
 1.2 Internet Connectivity
 
@@ -85,6 +99,8 @@ Create a Public Route Table:
 Associate with Public Web Subnets.
 
 Add route 0.0.0.0/0 → Internet Gateway.
+![aws-3-tier-architecture](images/internet-gw.png)
+
 
 Create a NAT Gateway in one of the public subnets.
 
@@ -93,6 +109,8 @@ Create a Private Route Table:
 Associate with Private App Subnets.
 
 Add route 0.0.0.0/0 → NAT Gateway.
+![aws-3-tier-architecture](images/nat.png)
+
 
 1.3 Security Groups
 
@@ -104,16 +122,23 @@ Web-Tier SG	HTTP (80) → My IP, HTTP (80) → Internet-Facing SG
 Internal SG	HTTP (80) → Web-Tier SG
 App-Tier SG	TCP 4000 → My IP, TCP 4000 → Internal SG
 DB SG	MySQL/Aurora (3306) → App-Tier SG
+![aws-3-tier-architecture](images/sg.png)
+
+
 🗄️ Part 2: Database Deployment
 2.1 Subnet Group
 
 Create an RDS Subnet Group using both private DB subnets.
+![aws-3-tier-architecture](images/db-subnet-group.png)
+
 
 2.2 Database Deployment
 
 Create an Amazon Aurora MySQL database in Dev/Test mode.
 
 Enable Multi-AZ deployment (Aurora Read Replica).
+![aws-3-tier-architecture](images/db.png)
+
 
 💻 Part 3: App Tier Instance Deployment
 3.1 Launch App Instance
@@ -125,6 +150,8 @@ No public IP
 No key pair
 
 Attach IAM Role from Part 0.4
+![aws-3-tier-architecture](images/app-ins.png)
+
 
 3.2 Configure Database
 
@@ -158,6 +185,9 @@ CREATE TABLE IF NOT EXISTS transactions (
 INSERT INTO transactions (amount, description) VALUES ('400', 'groceries');
 SELECT * FROM transactions;
 ```
+![aws-3-tier-architecture](images/db-inspect.png)
+
+
 3.3 Configure App Instance
 # Install Node Version Manager
 ```bash
@@ -179,6 +209,9 @@ cd ~/app-tier
 ```bash
 sudo vi Dbconfig.js
 ```
+![aws-3-tier-architecture](images/Dbconfig.js.png)
+
+
 ```bash
 # Install dependencies
 npm install
@@ -239,6 +272,7 @@ sudo aws s3 cp s3://BUCKET_NAME/nginx.conf ./nginx.conf
 ```bash
 sudo vi nginx.conf
 ```
+![aws-3-tier-architecture](images/nginx.conf.png)
 ```bash
 chmod -R 755 /home/ec2-user
 sudo chkconfig nginx on
@@ -259,9 +293,20 @@ Auto Scaling Group – Desired/Min/Max: 2, enable SNS notifications.
 🔒 Part 7: Domain, SSL, and CDN Integration
 
 CloudFront – Distribution with web-lb as origin, enable WAF.
+![aws-3-tier-architecture](images/cf.png)
+
 
 Route 53 – Hosted zone for your domain.
+![aws-3-tier-architecture](images/r53.png)
+
 
 SSL Certificate (ACM) – Request certificate for domain (DNS validation).
+![aws-3-tier-architecture](images/acm.png)
+
 
 Final DNS Setup – Route 53 A record alias → CloudFront distribution.
+![aws-3-tier-architecture](images/sample-output-1.png)
+
+
+![aws-3-tier-architecture](images/sample-output-2.png)
+
