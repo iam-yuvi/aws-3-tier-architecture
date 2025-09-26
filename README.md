@@ -37,7 +37,7 @@ git clone https://github.com/aws-samples/aws-three-tier-web-architecture-worksho
 ```
 This repository contains the web-tier, app-tier, and nginx.conf configuration.
 
-0.2 SNS Setup
+### 0.2 SNS Setup
 
 Create a Standard Topic in Amazon SNS.
 
@@ -47,7 +47,7 @@ Confirm the subscription via email.
 ![aws-3-tier-architecture](images/sns.png)
 
 
-0.3 S3 Bucket Creation
+### 0.3 S3 Bucket Creation
 
 Create an S3 bucket.
 
@@ -61,7 +61,7 @@ nginx.conf file
 ![aws-3-tier-architecture](images/S3-Bucket.png)
 
 
-0.4 IAM Role Creation
+### 0.4 IAM Role Creation
 
 Create an IAM role for EC2 with the following policies:
 ```bash
@@ -72,8 +72,8 @@ AmazonSSMManagedInstanceCore
 ![aws-3-tier-architecture](images/IAM-Role.png)
 
 
-🌐 Part 1: Networking and Security
-1.1 VPC and Subnets
+# 🌐 Part 1: Networking and Security
+### 1.1 VPC and Subnets
 
 Create a VPC.
 
@@ -90,7 +90,7 @@ Create:
 ![aws-3-tier-architecture](images/VPC-2.png)
 
 
-1.2 Internet Connectivity
+### 1.2 Internet Connectivity
 
 Create an Internet Gateway (IGW) and attach it to the VPC.
 
@@ -112,7 +112,7 @@ Add route 0.0.0.0/0 → NAT Gateway.
 ![aws-3-tier-architecture](images/nat.png)
 
 
-1.3 Security Groups
+### 1.3 Security Groups
 
 Create 5 Security Groups:
 
@@ -125,14 +125,14 @@ DB SG	MySQL/Aurora (3306) → App-Tier SG
 ![aws-3-tier-architecture](images/sg.png)
 
 
-🗄️ Part 2: Database Deployment
-2.1 Subnet Group
+# 🗄️ Part 2: Database Deployment
+### 2.1 Subnet Group
 
 Create an RDS Subnet Group using both private DB subnets.
 ![aws-3-tier-architecture](images/db-subnet-group.png)
 
 
-2.2 Database Deployment
+### 2.2 Database Deployment
 
 Create an Amazon Aurora MySQL database in Dev/Test mode.
 
@@ -140,8 +140,8 @@ Enable Multi-AZ deployment (Aurora Read Replica).
 ![aws-3-tier-architecture](images/db.png)
 
 
-💻 Part 3: App Tier Instance Deployment
-3.1 Launch App Instance
+# 💻 Part 3: App Tier Instance Deployment
+### 3.1 Launch App Instance
 
 Private App Subnet
 
@@ -153,7 +153,7 @@ Attach IAM Role from Part 0.4
 ![aws-3-tier-architecture](images/app-ins.png)
 
 
-3.2 Configure Database
+### 3.2 Configure Database
 
 Connect via AWS Systems Manager Session Manager.
 
@@ -195,17 +195,17 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
 source ~/.bashrc
 ```
 
-# Install PM2
+### Install PM2
 ```bash
 npm install -g pm2
 ```
-# Download app-tier code
+### Download app-tier code
 ```bash
 aws s3 cp s3://BUCKET_NAME/app-tier/ ~/app-tier --recursive
 cd ~/app-tier
 ```
 
-# Update Dbconfig.js with RDS credentials4
+### Update Dbconfig.js with RDS credentials4
 ```bash
 sudo vi Dbconfig.js
 ```
@@ -217,18 +217,18 @@ sudo vi Dbconfig.js
 npm install
 ```
 
-# Start app
+### Start app
 ```bash
 pm2 start index.js
 pm2 startup
 pm2 save
 ```
-3.4 Test App Tier
+### 3.4 Test App Tier
 ```bash
 curl http://localhost:4000/health
 curl http://localhost:4000/transaction
 ```
-⚖️ Part 4: Internal Load Balancing and Auto Scaling
+# ⚖️ Part 4: Internal Load Balancing and Auto Scaling
 
 Create App AMI – Create an AMI (app-img) from configured App Instance.
 
@@ -240,13 +240,13 @@ Internal Load Balancer – Application Load Balancer (internal-facing, port 80).
 
 Auto Scaling Group – Desired/Min/Max: 2, attach app-tg, enable SNS notifications.
 
-🌍 Part 5: Web Tier Instance Deployment
+# 🌍 Part 5: Web Tier Instance Deployment
 
 Launch Web Instance – Public subnet, public IP, attach IAM role.
 
 Configure Web Instance
 
-# Install Node.js
+### Install Node.js
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
 source ~/.bashrc
@@ -254,21 +254,21 @@ nvm install 16
 nvm use 16
 ```
 
-# Download web-tier code
+### Download web-tier code
 ```bash
 aws s3 cp s3://BUCKET_NAME/web-tier/ ~/web-tier --recursive
 cd ~/web-tier
 npm install
 npm run build
 ```
-# Install & configure Nginx
+### Install & configure Nginx
 ```bash
 sudo yum install nginx -y
 cd /etc/nginx
 sudo rm nginx.conf
 sudo aws s3 cp s3://BUCKET_NAME/nginx.conf ./nginx.conf
 ```
-# Update proxy_pass with Internal ALB DNS
+### Update proxy_pass with Internal ALB DNS
 ```bash
 sudo vi nginx.conf
 ```
@@ -278,7 +278,7 @@ chmod -R 755 /home/ec2-user
 sudo chkconfig nginx on
 sudo systemctl start nginx
 ```
-🌐 Part 6: External Load Balancer and Auto Scaling
+# 🌐 Part 6: External Load Balancer and Auto Scaling
 
 Create Web AMI – From Web Instance.
 
@@ -290,7 +290,7 @@ Internet-Facing Load Balancer – ALB (web-lb) with listener on port 80.
 
 Auto Scaling Group – Desired/Min/Max: 2, enable SNS notifications.
 
-🔒 Part 7: Domain, SSL, and CDN Integration
+# 🔒 Part 7: Domain, SSL, and CDN Integration
 
 CloudFront – Distribution with web-lb as origin, enable WAF.
 ![aws-3-tier-architecture](images/cf.png)
